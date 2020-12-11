@@ -1,0 +1,42 @@
+spring:
+  application: 
+    name: inventory-management
+  activemq: 
+    broker-url: ${AMQ_BROKER_URL}
+    user: ${AMQ_USER_NAME}
+    password: ${AMQ_PWD}
+    in-memory: false
+  jms:
+    pub-sub-domain: true
+  jackson: 
+    property-naming-strategy : LOWER_CAMEL_CASE
+    serialization:
+      fail-on-empty-beans: false
+  datasource:
+    url: ${ORACLE_JDBC_URL} 
+    username: ${ORACLE_USER}
+    password: ${ORACLE_PWD}
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+  jpa: 
+    show-sql: true
+  data:
+    mongodb:
+      authentication-database: ${MONGO_AUTH}
+      username: ${MONGO_USER}
+      password: ${MONGO_PWD}
+      database: ${MONGO_DB}
+      port: ${MONGO_PORT}
+      host: ${MONGO_HOST}
+  thymeleaf:
+    cache: false
+  
+server:
+    port: ${API_PORT}
+okta:
+  oauth2:
+    issuer: ${OKTA_ISSUER}
+    client-id: ${OKTA_CLIENT_ID}
+    client-secret: ${OKTA_CLIENT_SECRET}
+logging:
+  level: 
+    com.inventory.management: DEBUG
