@@ -2,6 +2,8 @@ package com.inventory.management.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -32,6 +34,8 @@ import com.inventory.management.service.InventoryService;
 @AutoConfigureMockMvc
 public class InventoryControllerTest {
 
+	private static final String TEST_USER_ID = "test_user";
+
 	@MockBean
 	private InventoryService inventoryService;
 
@@ -48,7 +52,9 @@ public class InventoryControllerTest {
 		itemCategory.setMinPrice(50);
 		itemCategories.add(itemCategory);
 		when(inventoryService.loadItemCategories()).thenReturn(itemCategories);
-		MvcResult result = mockMvc.perform(get("/svc/getAllItemCategories")).andExpect(status().isOk()).andReturn();
+		MvcResult result = mockMvc
+				.perform(get("/svc/getAllItemCategories").with(user(TEST_USER_ID)).with(csrf()))
+				.andExpect(status().isOk()).andReturn();
 		ObjectMapper mapper = new ObjectMapper();
 		final CollectionType typeReference = TypeFactory.defaultInstance().constructCollectionType(List.class,
 				ItemCategory.class);
@@ -69,7 +75,7 @@ public class InventoryControllerTest {
 		itemsList.add(items);
 		when(inventoryService.publishToAmq(itemsList)).thenReturn("Successfully published to AMQ");
 		ObjectMapper mapper = new ObjectMapper();
-		mockMvc.perform(post("/svc/publishToAmq").content(mapper.writeValueAsString(itemsList))
+		mockMvc.perform(post("/svc/publishToAmq").with(user(TEST_USER_ID)).with(csrf()).content(mapper.writeValueAsString(itemsList))
 				.contentType(MediaType.APPLICATION_JSON_VALUE).accept(MediaType.APPLICATION_JSON_VALUE))
 				.andExpect(status().isOk()).andReturn();
 	}

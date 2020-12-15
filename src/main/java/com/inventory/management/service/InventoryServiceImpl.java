@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -60,7 +59,7 @@ public class InventoryServiceImpl implements InventoryService {
 			items.forEach(item -> {
 				if (!validate(item) && !checkDuplicate(item)) {
 					ItemCategory itemCategory = categoryMap.get(item.getItemCategory());
-					System.out.println("categoryMap--->"+ categoryMap);
+					log.debug("categoryMap--->"+ categoryMap);
 					itemRecords.add(ItemRecords.builder().itemRecord(item.getItemId())
 							.itemCategory(item.getItemCategory()).locationId(item.getLocationId())
 							.itemDetails(item.getItemDetails()).price(item.getPrice()).quantity(item.getQuantity())
@@ -94,11 +93,4 @@ public class InventoryServiceImpl implements InventoryService {
 		}
 		return flag;
 	}
-
-	/*@JmsListener(destination = "ent.inventory_management::inventory_management.items_queue")
-	public void receive(String message) {
-		System.out.println("received message='{}'" + message);
-		log.info("received message='{}'", message);
-	}*/
-
 }

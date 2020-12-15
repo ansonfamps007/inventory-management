@@ -1,9 +1,7 @@
 package com.inventory.management.model;
 
 import javax.persistence.Column;
-import javax.persistence.Entity;
 import javax.persistence.Id;
-import javax.persistence.Table;
 
 //@Entity
 //@Table(name = "PRODUCT_INVENTORY", schema = "SERV_USER")
