@@ -1,42 +1,42 @@
 spring:
   application: 
     name: inventory-management
-  activemq: 
-    broker-url: ${AMQ_BROKER_URL}
-    user: ${AMQ_USER_NAME}
-    password: ${AMQ_PWD}
-    in-memory: false
-  jms:
-    pub-sub-domain: true
   jackson: 
     property-naming-strategy : LOWER_CAMEL_CASE
     serialization:
       fail-on-empty-beans: false
+  h2:
+    console.enabled: true
   datasource:
-    url: ${ORACLE_JDBC_URL} 
-    username: ${ORACLE_USER}
-    password: ${ORACLE_PWD}
-    driver-class-name: oracle.jdbc.driver.OracleDriver
-  jpa: 
+    url: jdbc:h2:mem:mydb
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
     show-sql: true
   data:
     mongodb:
-      authentication-database: ${MONGO_AUTH}
-      username: ${MONGO_USER}
-      password: ${MONGO_PWD}
-      database: ${MONGO_DB}
-      port: ${MONGO_PORT}
-      host: ${MONGO_HOST}
+      #authentication-database: ${MONGO_AUTH:''}
+      #username: ${MONGO_USER:''}
+      #password: ${MONGO_PWD:''}
+      database: ${MONGO_DB:mongoDB}
+      port: ${MONGO_PORT:27017}
+      host: ${MONGO_HOST:localhost}
+  kafka:    producer:      bootstrap-servers:      - localhost:29092,localhost:39092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   thymeleaf:
     cache: false
   
 server:
-    port: ${API_PORT}
+    port: ${API_PORT:9091}
 okta:
   oauth2:
-    issuer: ${OKTA_ISSUER}
-    client-id: ${OKTA_CLIENT_ID}
-    client-secret: ${OKTA_CLIENT_SECRET}
+    issuer: ${OKTA_ISSUER:''}
+    client-id: ${OKTA_CLIENT_ID:''}
+    client-secret: ${OKTA_CLIENT_SECRET:''}
 logging:
   level: 
     com.inventory.management: DEBUG

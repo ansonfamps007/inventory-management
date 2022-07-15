@@ -12,7 +12,7 @@ public interface InventoryService {
 
 	List<ItemCategory> loadItemCategories();
 
-	String publishToAmq(List<Items> items);
+	String publishItems(List<Items> items);
 
-	void init();
+	void initCategoryMap();
 }

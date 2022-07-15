@@ -43,7 +43,7 @@ public class InventoryServiceTest {
 		itemCategories.add(itemCategory);
 		doReturn(itemCategories).when(itemCategoryRepo).findAll();
 		doReturn(false).when(productAuditRepo).existsByItemRecordAndItemCategory(Mockito.anyString(), Mockito.anyString());
-		this.inventoryService.init();
+		this.inventoryService.initCategoryMap();
 	}
 
 	@Test
@@ -56,7 +56,7 @@ public class InventoryServiceTest {
 		items.setPrice(100);
 		items.setQuantity(123);
 		itemsList.add(items);
-		String str = inventoryService.publishToAmq(itemsList);
+		String str = inventoryService.publishItems(itemsList);
 		System.out.println(str);
 	}
 }

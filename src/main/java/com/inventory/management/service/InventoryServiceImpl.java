@@ -13,8 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inventory.management.bean.Items;
-import com.inventory.management.bean.Sender;
+import com.inventory.management.bean.KafkaProducer;
 import com.inventory.management.model.ItemCategory;
 import com.inventory.management.model.ItemRecords;
 import com.inventory.management.repository.ItemCategoryRepo;
@@ -33,13 +35,13 @@ public class InventoryServiceImpl implements InventoryService {
 	private ItemCategoryRepo itemCategoryRepo;
 
 	@Autowired
-	private Sender sender;
+	private KafkaProducer sender;
 
 	private Map<String, ItemCategory> categoryMap = new HashMap<>();
 
 	@Override
 	@PostConstruct
-	public void init() {
+	public void initCategoryMap() {
 		if (categoryMap.isEmpty()) {
 			categoryMap = loadItemCategories().stream()
 					.collect(Collectors.toMap(ItemCategory::getItemCategory, Function.identity()));
@@ -53,13 +55,16 @@ public class InventoryServiceImpl implements InventoryService {
 	}
 
 	@Override
-	public String publishToAmq(List<Items> items) {
+	public String publishItems(List<Items> items) {
 		List<ItemRecords> itemRecords = new ArrayList<>();
 		if (!CollectionUtils.isEmpty(items)) {
 			items.forEach(item -> {
 				if (!validate(item) && !checkDuplicate(item)) {
+					if (categoryMap.isEmpty()) {
+						initCategoryMap();
+					}
 					ItemCategory itemCategory = categoryMap.get(item.getItemCategory());
-					log.debug("categoryMap--->"+ categoryMap);
+					log.debug("categoryMap--->" + categoryMap);
 					itemRecords.add(ItemRecords.builder().itemRecord(item.getItemId())
 							.itemCategory(item.getItemCategory()).locationId(item.getLocationId())
 							.itemDetails(item.getItemDetails()).price(item.getPrice()).quantity(item.getQuantity())
@@ -67,15 +72,20 @@ public class InventoryServiceImpl implements InventoryService {
 				}
 			});
 		}
-
-		sender.publish("inventory_management.items_queue", itemRecords);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			sender.publish("inventory_items", mapper.writeValueAsString(itemRecords));
+		} catch (JsonProcessingException e) {
+			log.debug("Json mapping failed - " + e.getMessage());
+		}
 		return saveProductAudit(itemRecords);
 	}
 
 	@Override
 	public String saveProductAudit(List<ItemRecords> itemRecords) {
 		productAuditRepo.saveAll(itemRecords);
-		return "Successfully published to AMQ";
+		return "Successfully published to Kafka";
 	}
 
 	private boolean checkDuplicate(Items item) {

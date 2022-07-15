@@ -4,9 +4,6 @@ package com.inventory.management.exception;
 import javax.naming.ServiceUnavailableException;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -56,12 +53,14 @@ public class RestExceptionHandler {
 	 * @param ex the ex
 	 * @return the api error response
 	 */
-	@ExceptionHandler(value = { BadCredentialsException.class })
-	@ResponseStatus(HttpStatus.OK)
-	public ApiResponse unauthorizedExceptionHandler(final BadCredentialsException ex) {
-		return ApiResponse.builder().error(true).errorCode(HttpStatus.UNAUTHORIZED.value()).message(ex.getMessage())
-				.build();
-	}
+	/*
+	 * @ExceptionHandler(value = { BadCredentialsException.class })
+	 * 
+	 * @ResponseStatus(HttpStatus.OK) public ApiResponse
+	 * unauthorizedExceptionHandler(final BadCredentialsException ex) { return
+	 * ApiResponse.builder().error(true).errorCode(HttpStatus.UNAUTHORIZED.value()).
+	 * message(ex.getMessage()) .build(); }
+	 */
 
 	/**
 	 * 
@@ -70,12 +69,14 @@ public class RestExceptionHandler {
 	 * @param ex the ex
 	 * @return the api error response
 	 */
-	@ExceptionHandler(value = { UsernameNotFoundException.class })
-	@ResponseStatus(HttpStatus.OK)
-	public ApiResponse userNameExceptionHandler(final UsernameNotFoundException ex) {
-		return ApiResponse.builder().error(true).errorCode(HttpStatus.BAD_REQUEST.value()).message(ex.getMessage())
-				.build();
-	}
+	/*
+	 * @ExceptionHandler(value = { UsernameNotFoundException.class })
+	 * 
+	 * @ResponseStatus(HttpStatus.OK) public ApiResponse
+	 * userNameExceptionHandler(final UsernameNotFoundException ex) { return
+	 * ApiResponse.builder().error(true).errorCode(HttpStatus.BAD_REQUEST.value()).
+	 * message(ex.getMessage()) .build(); }
+	 */
 
 	/**
 	 * 
@@ -99,12 +100,14 @@ public class RestExceptionHandler {
 	 * @param ex the ex
 	 * @return the api error response
 	 */
-	@ExceptionHandler(value = { JwtException.class })
-	@ResponseStatus(HttpStatus.UNAUTHORIZED)
-	public ApiResponse jwtExceptionHandler(final JwtException ex) {
-		return ApiResponse.builder().error(true).errorCode(HttpStatus.UNAUTHORIZED.value()).message(ex.getMessage())
-				.build();
-	}
+	/*
+	 * @ExceptionHandler(value = { JwtException.class })
+	 * 
+	 * @ResponseStatus(HttpStatus.UNAUTHORIZED) public ApiResponse
+	 * jwtExceptionHandler(final JwtException ex) { return
+	 * ApiResponse.builder().error(true).errorCode(HttpStatus.UNAUTHORIZED.value()).
+	 * message(ex.getMessage()) .build(); }
+	 */
 
 	/**
 	 * 

@@ -1,0 +1,1 @@
+insert into ITEM_CATEGORY (ITEM_CATEGOARY, MIN_PRIZE, MAX_PRIZE) values ('book','250','700');
