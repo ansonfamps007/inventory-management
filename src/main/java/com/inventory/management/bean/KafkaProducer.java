@@ -3,6 +3,7 @@ package com.inventory.management.bean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
@@ -20,6 +21,7 @@ public class KafkaProducer {
 		this.kafkaTemplate = kafkaTemplate;
 	}
 
+	@Async
 	public void publish(String topicName, String itemRecords) {
 		log.info("sending message='{}' to destination='{}'", itemRecords, topicName);
 		ListenableFuture<SendResult<String, String>> future = kafkaTemplate.send(topicName, itemRecords);

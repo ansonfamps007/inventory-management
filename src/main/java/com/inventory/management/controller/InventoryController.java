@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.inventory.management.bean.Items;
 import com.inventory.management.model.ItemCategory;
@@ -41,6 +43,17 @@ public class InventoryController {
 	public String publishItems(@RequestBody @Valid List<Items> items) {
 		log.info("InventoryController : publishItems");
 		return inventoryService.publishItems(items);
+	}
+
+	@PostMapping(value = "/uploadItems", produces = { MediaType.APPLICATION_JSON_VALUE }, consumes = {
+			MediaType.MULTIPART_FORM_DATA_VALUE })
+	@Operation(summary = "Upload Items")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Success"),
+			@ApiResponse(responseCode = "400", description = "Invalid Data"),
+			@ApiResponse(responseCode = "406", description = "Validation exception") })
+	public String uploadItems(@RequestParam("file") MultipartFile file) {
+		log.info("InventoryController : uploadItems");
+		return inventoryService.uploadItems(file);
 	}
 
 	@GetMapping(value = "/getAllItemCategories", produces = { MediaType.APPLICATION_JSON_VALUE })

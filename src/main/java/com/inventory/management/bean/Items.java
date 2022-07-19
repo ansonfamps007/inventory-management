@@ -27,8 +27,20 @@ public class Items {
 	private int quantity;
 
 	private double price;
-	
+
 	@NotBlank
-	private String itemDetails;
+	private String bookTitle;
+
+	@NotBlank
+	private String bookAuthor;
+
+	@NotBlank
+	private String bookCategory;
+
+	@NotBlank
+	private String bookLanguage;
+
+	@NotBlank
+	private String bookDescription;
 
 }

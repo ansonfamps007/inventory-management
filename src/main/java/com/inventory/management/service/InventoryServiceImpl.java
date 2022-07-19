@@ -1,5 +1,8 @@
 package com.inventory.management.service;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +15,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,12 +25,15 @@ import com.inventory.management.model.ItemCategory;
 import com.inventory.management.model.ItemRecords;
 import com.inventory.management.repository.ItemCategoryRepo;
 import com.inventory.management.repository.ProductAuditRepo;
+import com.opencsv.bean.CsvToBeanBuilder;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class InventoryServiceImpl implements InventoryService {
+
+	static String SHEET = "Items";
 
 	@Autowired
 	private ProductAuditRepo productAuditRepo;
@@ -63,22 +70,25 @@ public class InventoryServiceImpl implements InventoryService {
 					if (categoryMap.isEmpty()) {
 						initCategoryMap();
 					}
-					ItemCategory itemCategory = categoryMap.get(item.getItemCategory());
+					ItemCategory itemCategory = categoryMap.get(item.getItemCategory().toLowerCase());
 					log.debug("categoryMap--->" + categoryMap);
-					itemRecords.add(ItemRecords.builder().itemRecord(item.getItemId())
+
+					ItemRecords itemRecord = ItemRecords.builder().itemRecord(item.getItemId())
 							.itemCategory(item.getItemCategory()).locationId(item.getLocationId())
-							.itemDetails(item.getItemDetails()).price(item.getPrice()).quantity(item.getQuantity())
-							.minPrice(itemCategory.getMinPrice()).maxPrice(itemCategory.getMaxPrice()).build());
+							.itemDetails(item.getBookTitle()).price(item.getPrice()).quantity(item.getQuantity())
+							.minPrice(itemCategory.getMinPrice()).maxPrice(itemCategory.getMaxPrice()).build();
+
+					ObjectMapper mapper = new ObjectMapper();
+					try {
+						sender.publish("inventory_items", mapper.writeValueAsString(item));
+					} catch (JsonProcessingException e) {
+						log.debug("Json mapping failed - " + e.getMessage());
+					}
+					itemRecords.add(itemRecord);
 				}
 			});
 		}
-		
-		ObjectMapper mapper = new ObjectMapper();
-		try {
-			sender.publish("inventory_items", mapper.writeValueAsString(itemRecords));
-		} catch (JsonProcessingException e) {
-			log.debug("Json mapping failed - " + e.getMessage());
-		}
+
 		return saveProductAudit(itemRecords);
 	}
 
@@ -102,5 +112,20 @@ public class InventoryServiceImpl implements InventoryService {
 			flag = true;
 		}
 		return flag;
+	}
+
+	@Override
+	public String uploadItems(MultipartFile file) {
+		Reader reader;
+		try {
+			reader = new InputStreamReader(file.getInputStream());
+			List<Items> items = new CsvToBeanBuilder<Items>(reader).withType(Items.class).build().parse();
+			publishItems(items);
+
+		} catch (IOException e) {
+			log.error("CSV read failed ! {}", e.getMessage());
+		}
+
+		return "Sucessfully Uploaded !";
 	}
 }
