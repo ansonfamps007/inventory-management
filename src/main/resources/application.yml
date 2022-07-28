@@ -32,6 +32,8 @@ spring:
   
 server:
     port: ${API_PORT:9091}
+app:
+  msg-broker-url: ${MSG_BROKER_URL:http://localhost:9092/api/kafka/broker/publish/}
 okta:
   oauth2:
     issuer: ${OKTA_ISSUER:''}

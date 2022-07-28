@@ -3,28 +3,40 @@ package com.inventory.management.service;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.inventory.management.bean.Items;
-import com.inventory.management.bean.KafkaProducer;
 import com.inventory.management.model.ItemCategory;
 import com.inventory.management.model.ItemRecords;
 import com.inventory.management.repository.ItemCategoryRepo;
 import com.inventory.management.repository.ProductAuditRepo;
+import com.inventory.management.util.ApiConstants;
 import com.opencsv.bean.CsvToBeanBuilder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InventoryServiceImpl implements InventoryService {
 
-	static String SHEET = "Items";
+	@Value("${app.msg-broker-url}")
+	private String MSG_BROKER_URL;
 
 	@Autowired
 	private ProductAuditRepo productAuditRepo;
@@ -41,8 +54,8 @@ public class InventoryServiceImpl implements InventoryService {
 	@Autowired
 	private ItemCategoryRepo itemCategoryRepo;
 
-	@Autowired
-	private KafkaProducer sender;
+	private static HttpClient client = HttpClient.newBuilder().version(Version.HTTP_2)
+			.connectTimeout(Duration.ofSeconds(20)).build();
 
 	private Map<String, ItemCategory> categoryMap = new HashMap<>();
 
@@ -80,9 +93,19 @@ public class InventoryServiceImpl implements InventoryService {
 
 					ObjectMapper mapper = new ObjectMapper();
 					try {
-						sender.publish("inventory_items", mapper.writeValueAsString(item));
-					} catch (JsonProcessingException e) {
-						log.debug("Json mapping failed - " + e.getMessage());
+						StringBuilder uri = new StringBuilder(MSG_BROKER_URL).append(ApiConstants.TOPIC);
+						HttpRequest request = HttpRequest.newBuilder().uri(new URI(uri.toString()))
+								.POST(BodyPublishers.ofString(mapper.writeValueAsString(item))).build();
+
+						CompletableFuture<HttpResponse<String>> response = client.sendAsync(request,
+								HttpResponse.BodyHandlers.ofString());
+
+						String result = response.thenApply(HttpResponse::body).get(5, TimeUnit.SECONDS);
+
+						System.out.println("Completable response--->" + result);
+					} catch (IOException | URISyntaxException | InterruptedException | ExecutionException
+							| TimeoutException e) {
+						log.debug("publishItems failed - " + e.getMessage());
 					}
 					itemRecords.add(itemRecord);
 				}
